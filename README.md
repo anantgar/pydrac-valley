@@ -11,9 +11,9 @@ Pydew Valley RPG written in Python Pygame based on [tutorial](https://www.youtub
 ## Run project locally
 
 ```bash
-git clone https://github.com/artemshchirov/pydew-valley.git
+git clone https://github.com/anantgar/pydrac-valley.git
+cd pydrac-valley
 pip install pygame
-cd pydew-valley
 python code/main.py
 ```
 
