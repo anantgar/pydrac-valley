@@ -36,6 +36,8 @@ class Water(Generic):
             groups=groups,
             z=LAYERS['water']
         )
+        # Override hitbox to full tile so water is impassable
+        self.hitbox = self.rect.copy()
 
     def animate(self, dt):
         self.frame_index += 5 * dt

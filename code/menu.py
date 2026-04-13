@@ -1,3 +1,9 @@
+"""
+Inventory / status menu (replaces the original shop menu).
+
+Shows Dracula's current status and inventory. The shop buy/sell
+mechanic is kept for the Trader interaction.
+"""
 import pygame
 from settings import *
 from support import get_path
@@ -10,7 +16,7 @@ class Menu:
         self.player = player
         self.toggle_menu = toggle_menu
         self.display_surface = pygame.display.get_surface()
-        font_path = get_path('../font/LycheeSoda.ttf')
+        font_path = get_path(FONT_PATH)
         self.font = pygame.font.Font(font_path, 30)
 
         # options
@@ -31,14 +37,13 @@ class Menu:
     def display_money(self):
         text_surf = self.font.render(f'${self.player.money}', False, 'Black')
         text_rect = text_surf.get_rect(
-            midbottom=(SCREEN_WIDTH/2, SCREEN_HEIGHT-20))
+            midbottom=(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20))
 
         pygame.draw.rect(self.display_surface, 'White',
                          text_rect.inflate(10, 10), 0, 4)
         self.display_surface.blit(text_surf, text_rect)
 
     def setup(self):
-        # create text surfaces
         self.text_surfs = []
         self.total_height = 0
 
@@ -50,9 +55,9 @@ class Menu:
         self.total_height += (len(self.text_surfs) - 1) * self.space
         self.menu_top = SCREEN_HEIGHT / 2 - self.total_height / 2
         self.main_rect = pygame.Rect(
-            SCREEN_WIDTH / 2 - self.width / 2, self.menu_top, self.width, self.total_height)
+            SCREEN_WIDTH / 2 - self.width / 2, self.menu_top,
+            self.width, self.total_height)
 
-        # buy / sell surface
         self.buy_text = self.font.render('buy', False, 'Black')
         self.sell_text = self.font.render('sell', False, 'Black')
 
@@ -75,7 +80,6 @@ class Menu:
             if keys[pygame.K_SPACE] or keys[pygame.K_RETURN]:
                 self.timer.activate()
 
-                # get item
                 current_item = self.options[self.index]
 
                 # sell
@@ -96,33 +100,29 @@ class Menu:
             self.index = 0
 
     def show_entry(self, text_surf, amount, top, selected):
-        # background
         bg_rect = pygame.Rect(self.main_rect.left, top, self.width,
                               text_surf.get_height() + self.padding * 2)
         pygame.draw.rect(self.display_surface, 'White', bg_rect, 0, 4)
 
-        # text
         text_rect = text_surf.get_rect(
-            midleft=(self.main_rect.left+20, bg_rect.centery))
+            midleft=(self.main_rect.left + 20, bg_rect.centery))
         self.display_surface.blit(text_surf, text_rect)
 
-        # amount
         amount_surf = self.font.render(str(amount), False, 'Black')
         amount_rect = amount_surf.get_rect(
-            midright=(self.main_rect.right-20, bg_rect.centery))
+            midright=(self.main_rect.right - 20, bg_rect.centery))
         self.display_surface.blit(amount_surf, amount_rect)
 
-        # selected
         if selected:
             pygame.draw.rect(self.display_surface, 'black', bg_rect, 4, 4)
-            if self.index <= self.sell_border:  # buy
-                buy_pos_rect = self.sell_text.get_rect(
+            if self.index <= self.sell_border:
+                pos_rect = self.sell_text.get_rect(
                     midleft=(self.main_rect.left + 150, bg_rect.centery))
-                self.display_surface.blit(self.sell_text, buy_pos_rect)
-            else:  # sell
-                sell_pos_rect = self.buy_text.get_rect(
+                self.display_surface.blit(self.sell_text, pos_rect)
+            else:
+                pos_rect = self.buy_text.get_rect(
                     midleft=(self.main_rect.left + 150, bg_rect.centery))
-                self.display_surface.blit(self.buy_text, sell_pos_rect)
+                self.display_surface.blit(self.buy_text, pos_rect)
 
     def update(self):
         self.input()

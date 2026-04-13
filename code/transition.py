@@ -1,16 +1,21 @@
+"""
+Transition — screen fade for coffin sleep / day skip.
+
+When Dracula enters his coffin, the screen fades to black and back.
+On the dark frame the Level.reset() is called, which advances time
+to the next night.
+"""
 import pygame
 from settings import *
 
 
 class Transition:
     def __init__(self, reset, player):
-
-        # setup
         self.display_surface = pygame.display.get_surface()
         self.reset = reset
         self.player = player
 
-        # overlay image
+        # Overlay used for fade
         self.image = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.color = 255
         self.speed = -2

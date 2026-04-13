@@ -7,6 +7,7 @@ def import_folder(path):
 
     for _, __, img_files in os.walk(path):
         for image in img_files:
+            if image.startswith('.'): continue
             full_path = path + '/' + image
             image_surf = pygame.image.load(full_path).convert_alpha()
             surface_list.append(image_surf)
@@ -19,6 +20,7 @@ def import_folder_dict(path):
 
     for _, __, img_files in os.walk(path):
         for image in img_files:
+            if image.startswith('.'): continue
             full_path = path + '/' + image
             image_surf = pygame.image.load(full_path).convert_alpha()
             surface_dict[image.split('.')[0]] = image_surf

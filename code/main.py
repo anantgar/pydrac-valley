@@ -1,6 +1,5 @@
 import pygame
 import sys
-import time
 from settings import *
 from level import Level
 
