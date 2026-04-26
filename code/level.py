@@ -18,35 +18,30 @@ from settings import *
 from support import *
 from player import Dracula
 from overlay import Overlay
-from sprites import Generic, Water, Wildflower, Tree, Interaction, Particle
+from sprites import Generic, Water, Tree, Interaction
 from pytmx.util_pygame import load_pygame
 from transition import Transition
-from soil import SoilLayer
 from sky import Rain, Sky
 from random import randint
-from menu import Menu
 from world import WorldManager
 from npc import (
     Guardian, Lucy, Mina, Renfield, Seward, JonathanHarker,
 )
 
 # ── Exit gap definitions ─────────────────────────────────────────────────────
-# Tile coordinates (col, row) that should NOT be made into collision/fence
-# sprites so that the player can exit London and reach other locations.
-# West exit: remove fence at x=6, y=17-19 (gap at road height ~y=1150)
-# East exit: remove fence at x=46, y=17-19 (gap at road height)
-# North exit: remove fence at x=37, y=2 and collision at x=37-38, y=5
-#             to allow path to museum
-_WEST_EXIT_GAP = {(6, y) for y in range(16, 21)}
-_EAST_EXIT_GAP = {(46, y) for y in range(16, 21)}
-_NORTH_EXIT_GAP = {(37, y) for y in range(2, 6)} | {(38, y) for y in range(2, 6)}
-_EXIT_GAPS_FENCE = _WEST_EXIT_GAP | _EAST_EXIT_GAP | _NORTH_EXIT_GAP
+# Tile coordinates (col, row) that should NOT be made into collision sprites
+# so that the player can exit London and reach other locations.
 _EXIT_GAPS_COLLISION = {
     (9, y) for y in range(16, 22)
 } | {
     (x, 5) for x in range(35, 41)
 } | {
     (40, y) for y in range(5, 10)
+}
+
+_MAIN_HOUSE_BED_TILES = {
+    (21, 21),
+    (21, 22),
 }
 
 
@@ -57,7 +52,6 @@ class Level:
         # sprite groups
         self.all_sprites = CameraGroup()
         self.collision_sprites = pygame.sprite.Group()
-        self.tree_sprites = pygame.sprite.Group()
         self.interaction_sprites = pygame.sprite.Group()
         self.npc_sprites = pygame.sprite.Group()
 
@@ -67,23 +61,17 @@ class Level:
         # load tilesets for procedural building
         self._load_tilesets()
 
-        # soil layer (kept for graveyard farming)
-        self.soil_layer = SoilLayer(self.all_sprites, self.collision_sprites)
-
         # map + player + NPCs
         self.setup()
 
         # sky & weather
         self.rain = Rain(self.all_sprites)
         self.raining = randint(0, 10) > 7
-        self.soil_layer.raining = self.raining
         self.sky = Sky()
 
-        # HUD & menus
+        # HUD
         self.overlay = Overlay(self.player, self.sky)
         self.transition = Transition(self.reset, self.player)
-        self.menu = Menu(self.player, self.toggle_shop)
-        self.shop_active = False
 
         # ── Death screen state ───────────────────────────────────────
         self.dead = False
@@ -93,15 +81,9 @@ class Level:
         self._death_font = pygame.font.Font(_font_path, 48)
         self._death_font_small = pygame.font.Font(_font_path, 24)
 
-        # sounds
-        success_sound_path = get_path('../audio/success.wav')
-        self.success = pygame.mixer.Sound(success_sound_path)
-        self.success.set_volume(0.2)
-
-        music_path = get_path('../audio/music.mp3')
-        self.music = pygame.mixer.Sound(music_path)
-        self.music.set_volume(0.1)
-        self.music.play(loops=-1)
+        self._music_path = self._resolve_music_path()
+        self._music_playing = False
+        self._start_music()
 
     # ==================================================================
     # TILESET LOADING
@@ -111,12 +93,56 @@ class Level:
         house_path = get_path(HOUSE_TILESET_PATH)
         self._house_sheet = pygame.image.load(house_path).convert_alpha()
 
+        house_decoration_path = get_path(HOUSE_DECORATION_TILESET_PATH)
+        self._house_decoration_sheet = pygame.image.load(
+            house_decoration_path).convert_alpha()
+
         paths_path = get_path(PATHS_TILESET_PATH)
         self._paths_sheet = pygame.image.load(paths_path).convert_alpha()
+
+    def _resolve_music_path(self):
+        """Prefer stable music formats before falling back to MP3."""
+        candidates = (
+            '../audio/music.ogg',
+            '../audio/music.wav',
+            '../audio/music.mp3',
+        )
+        for rel_path in candidates:
+            abs_path = get_path(rel_path)
+            if os.path.exists(abs_path):
+                return abs_path
+        # Fall back to MP3 path so pygame raises a clear load error if missing.
+        return get_path('../audio/music.mp3')
+
+    def _start_music(self):
+        """Load and start looping background music."""
+        try:
+            pygame.mixer.music.load(self._music_path)
+            pygame.mixer.music.set_volume(0.1)
+            pygame.mixer.music.play(loops=-1)
+            self._music_playing = True
+        except pygame.error as exc:
+            self._music_playing = False
+            print(f'Failed to load background music ({self._music_path}): {exc}')
+
+    def _ensure_music_loop(self):
+        """Restart music if the decoder stops unexpectedly."""
+        if not self._music_playing:
+            return
+        if not pygame.mixer.music.get_busy():
+            try:
+                pygame.mixer.music.play(loops=-1)
+            except pygame.error:
+                self._music_playing = False
 
     def _get_house_tile(self, col, row):
         """Extract a 64x64 tile from the House tileset."""
         return self._house_sheet.subsurface(col * 64, row * 64, 64, 64)
+
+    def _get_house_decoration_tile(self, col, row):
+        """Extract a 64x64 tile from the House Decoration tileset."""
+        return self._house_decoration_sheet.subsurface(
+            col * 64, row * 64, 64, 64)
 
     def _get_path_tile(self, col, row):
         """Extract a 64x64 tile from the Paths tileset."""
@@ -223,6 +249,47 @@ class Level:
             py = by + (rel_ty + offset_ty) * TILE_SIZE
             Generic((px, py), surf, self.all_sprites, z)
 
+    def _build_asylum_partition(self, bx, by):
+        """Add a full-height cell wall between Renfield and Seward."""
+        wall_tile = self._get_house_tile(0, 2)
+        wall_x = bx + 4 * TILE_SIZE
+
+        for ty in range(1, 7):
+            wall = Generic(
+                (wall_x, by + ty * TILE_SIZE),
+                wall_tile,
+                [self.all_sprites, self.collision_sprites],
+            )
+            wall.hitbox = wall.rect.copy()
+
+    def _add_bedroom_furniture(self, bx, by):
+        """Furnish one attached bedroom with bed, rug, and dresser."""
+        bed_top = self._get_house_decoration_tile(1, 1)
+        bed_bottom = self._get_house_decoration_tile(1, 2)
+        dresser = self._get_house_decoration_tile(3, 1)
+        rug = self._get_house_decoration_tile(0, 5)
+
+        furniture = [
+            ((1, 1), bed_top, LAYERS['main']),
+            ((1, 2), bed_bottom, LAYERS['main']),
+            ((3, 1), dresser, LAYERS['main']),
+            ((2, 2), rug, LAYERS['house bottom']),
+        ]
+
+        for (tx, ty), surf, z in furniture:
+            Generic((bx + tx * TILE_SIZE, by + ty * TILE_SIZE), surf,
+                    self.all_sprites, z)
+
+        Interaction((bx + TILE_SIZE, by + TILE_SIZE),
+                    (TILE_SIZE, TILE_SIZE * 2),
+                    self.interaction_sprites, 'Bed')
+
+    def _build_london_bedrooms(self):
+        """Build the matching bedrooms attached to the London house."""
+        for bx, by, w, h in (LUCY_BEDROOM_BUILDING, MINA_BEDROOM_BUILDING):
+            self._build_structure(bx, by, w, h)
+            self._add_bedroom_furniture(bx, by)
+
     def _build_roads(self):
         """Create road/path tiles connecting major locations."""
         # Use a center path tile (row 1, col 1) and edges
@@ -276,25 +343,24 @@ class Level:
             pos=(0, 0), surf=london_ground,
             groups=self.all_sprites, z=LAYERS['ground'])
 
-        # For expanded areas, create simple grass-colored ground patches.
+        # For expanded areas, create simple pale grey-green ground patches.
         # We tile with reasonably sized surfaces to avoid one massive allocation.
-        grass_color = (69, 108, 58)  # Dark green grass
-        dark_grass = (50, 80, 45)    # Slightly darker variation
+        ground_color = (126, 136, 124)  # Keep one consistent grass tone
 
         # Define ground patches needed for each area
         patches = [
             # Castle / graveyard area (west)
-            (-3200, 400, 1600, 2000, grass_color),
+            (-3200, 400, 1600, 2000, ground_color),
             # Road area between castle and London
-            (-1600, 800, 1600, 800, dark_grass),
+            (-1600, 800, 1600, 800, ground_color),
             # East of London (towards asylum)
-            (3200, 400, 2400, 2000, grass_color),
+            (3200, 400, 2400, 2000, ground_color),
             # Road / terrain to Budapest
-            (4400, 1600, 1200, 2800, dark_grass),
+            (4400, 1600, 1200, 2800, ground_color),
             # Budapest area
-            (4400, 3400, 1600, 1200, grass_color),
+            (4400, 3400, 1600, 1200, ground_color),
             # North area (museum)
-            (1600, -1200, 1600, 1200, grass_color),
+            (1600, -1200, 1600, 1200, ground_color),
         ]
 
         for px, py, pw, ph, color in patches:
@@ -329,12 +395,21 @@ class Level:
 
         for layer in ['HouseFloor', 'HouseFurnitureBottom']:
             for x, y, surf in tmx_data.get_layer_by_name(layer).tiles():
+                if (layer.startswith('HouseFurniture') and
+                        (x, y) in _MAIN_HOUSE_BED_TILES):
+                    continue
                 Generic((x * TILE_SIZE, y * TILE_SIZE), surf,
                         self.all_sprites, LAYERS['house bottom'])
 
         for layer in ['HouseWalls', 'HouseFurnitureTop']:
             for x, y, surf in tmx_data.get_layer_by_name(layer).tiles():
+                if (layer.startswith('HouseFurniture') and
+                        (x, y) in _MAIN_HOUSE_BED_TILES):
+                    continue
                 Generic((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
+
+        # Lucy and Mina now sleep in matching rooms attached to the house.
+        self._build_london_bedrooms()
 
         # Capture furniture tiles for replication to other buildings
         self._house_furniture = []
@@ -345,13 +420,6 @@ class Level:
                         _HOUSE_TY0 <= y < _HOUSE_TY0 + _HOUSE_TH):
                     self._house_furniture.append(
                         (x - _HOUSE_TX0, y - _HOUSE_TY0, surf, z))
-
-        # ── Fence (skip tiles at exit gaps so player can leave London) ──
-        for x, y, surf in tmx_data.get_layer_by_name('Fence').tiles():
-            if (x, y) in _EXIT_GAPS_FENCE:
-                continue  # leave gap for road exit
-            Generic((x * TILE_SIZE, y * TILE_SIZE), surf,
-                    [self.all_sprites, self.collision_sprites])
 
         # ── Water tiles — collision so nobody walks on them ─────────
         # Skip water tiles near road exit points so the paths aren’t blocked.
@@ -376,20 +444,8 @@ class Level:
             Tree(
                 pos=(obj.x, obj.y),
                 surf=obj.image,
-                groups=[self.all_sprites, self.collision_sprites,
-                        self.tree_sprites],
-                name=obj.name,
-                player_add=self.player_add,
+                groups=[self.all_sprites, self.collision_sprites],
             )
-
-        # ── Wildflowers / decoration (skip any in exit corridors) ────
-        for obj in tmx_data.get_layer_by_name('Decoration'):
-            if _north_corridor.collidepoint(obj.x, obj.y):
-                Generic((obj.x, obj.y), obj.image,
-                        self.all_sprites, LAYERS['main'])
-                continue
-            Wildflower((obj.x, obj.y), obj.image,
-                       [self.all_sprites, self.collision_sprites])
 
         # ── Collision tiles (skip exit gaps) ─────────────────────────────
         for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
@@ -409,20 +465,8 @@ class Level:
             pos=player_start,
             group=self.all_sprites,
             collision_sprites=self.collision_sprites,
-            tree_sprites=self.tree_sprites,
             interaction=self.interaction_sprites,
-            soil_layer=self.soil_layer,
-            toggle_shop=self.toggle_shop,
         )
-        for obj in tmx_data.get_layer_by_name('Player'):
-
-            if obj.name == 'Bed':
-                Interaction((obj.x, obj.y), (obj.width, obj.height),
-                            self.interaction_sprites, obj.name)
-
-            if obj.name == 'Trader':
-                Interaction((obj.x, obj.y), (obj.width, obj.height),
-                            self.interaction_sprites, obj.name)
 
         # ── Build expanded world structures ──────────────────────────
         self._build_expanded_world()
@@ -458,6 +502,7 @@ class Level:
         # Asylum
         bx, by, w, h = ASYLUM_BUILDING
         self._build_structure(bx, by, w, h, 'Asylum')
+        self._build_asylum_partition(bx, by)
 
         # Budapest convent
         bx, by, w, h = CONVENT_BUILDING
@@ -491,16 +536,6 @@ class Level:
 
         # Budapest convent
         JonathanHarker(groups, collision_sprites=cs)
-
-    # ==================================================================
-    # CALLBACKS
-    # ==================================================================
-    def player_add(self, item, amount=1):
-        self.player.item_inventory[item] += amount
-        self.success.play()
-
-    def toggle_shop(self):
-        self.shop_active = not self.shop_active
 
     # ==================================================================
     # GAME LOGIC (per-frame)
@@ -568,6 +603,12 @@ class Level:
         self.player.speed = DRACULA_SPEED[FORM_HUMAN]
         self.player.taking_sun_damage = False
         self.sky.reset_to_night()
+
+        # Reset all NPCs (undo vampirism, restore default state/positions)
+        for npc in self.npc_sprites.sprites():
+            if hasattr(npc, 'reset_state'):
+                npc.reset_state()
+
         self.dead = False
         self._death_timer = 0.0
         self._death_alpha = 0
@@ -591,40 +632,19 @@ class Level:
                 npc.turn_vampire()
                 break
 
-    def plant_collision(self):
-        if self.soil_layer.plant_sprites:
-            for plant in self.soil_layer.plant_sprites.sprites():
-                if plant.harvestable and plant.rect.colliderect(self.player.hitbox):
-                    self.player_add(plant.plant_type)
-                    plant.kill()
-                    Particle(plant.rect.topleft, plant.image,
-                             self.all_sprites, z=LAYERS['main'])
-                    x = plant.rect.centerx // TILE_SIZE
-                    y = plant.rect.centery // TILE_SIZE
-                    self.soil_layer.grid[y][x].remove('P')
-
     # ==================================================================
     # RESET
     # ==================================================================
     def reset(self):
-        self.soil_layer.update_plants()
-        self.soil_layer.remove_water()
         self.raining = randint(0, 10) > 7
-        self.soil_layer.raining = self.raining
-        if self.raining:
-            self.soil_layer.water_all()
-
-        for tree in self.tree_sprites.sprites():
-            for apple in tree.apple_sprites.sprites():
-                apple.kill()
-            tree.create_fruit()
-
         self.sky.reset_to_night()
 
     # ==================================================================
     # MAIN RUN LOOP
     # ==================================================================
     def run(self, dt):
+        self._ensure_music_loop()
+
         # ── Death screen takes over ──────────────────────────────────
         if self.dead:
             self.display_surface.fill('black')
@@ -637,19 +657,15 @@ class Level:
         self.all_sprites.custom_draw(self.player)
 
         # updates
-        if self.shop_active:
-            self.menu.update()
-        else:
-            self.all_sprites.update(dt)
-            self.plant_collision()
-            Guardian.update_rotation(dt)
-            self._check_sunlight(dt)
-            self._check_predation()
-            self._check_death()
+        self.all_sprites.update(dt)
+        Guardian.update_rotation(dt)
+        self._check_sunlight(dt)
+        self._check_predation()
+        self._check_death()
 
         # weather & HUD
         self.overlay.display(dt)
-        if self.raining and not self.shop_active:
+        if self.raining:
             self.rain.update()
         self.sky.display(dt)
 

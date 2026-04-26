@@ -6,12 +6,12 @@ Displays:
 - Current form indicator (below blood bar)
 - Time-of-day display (top-right)
 - Sunlight warning (flashing red text when taking damage)
-- Elisabeta portrait text overlay (centered, toggled with P)
-- Current tool / seed icons (bottom — kept for graveyard farming)
+- Elisabeta portrait overlay (centered, toggled with P)
 """
 import os
 import pygame
 from settings import *
+from support import get_path
 
 
 class Overlay:
@@ -26,21 +26,12 @@ class Overlay:
         self.font_large = pygame.font.Font(font_path, 30)
         self.font_small = pygame.font.Font(font_path, 16)
 
-        # Tool / seed overlays (kept for farming)
-        overlay_dir = os.path.join(os.path.dirname(__file__), '../graphics/overlay/')
-        self.tools_surf = {}
-        for tool in player.tools:
-            path = f'{overlay_dir}{tool}.png'
-            if os.path.exists(path):
-                self.tools_surf[tool] = pygame.image.load(path).convert_alpha()
-        self.seeds_surf = {}
-        for seed in player.seeds:
-            path = f'{overlay_dir}{seed}.png'
-            if os.path.exists(path):
-                self.seeds_surf[seed] = pygame.image.load(path).convert_alpha()
-
         # Sunlight warning flash timer
         self._warning_timer = 0.0
+
+        # Elisabeta portrait image
+        portrait_path = get_path('../graphics/objects/elisabeta_portrait.png')
+        self.elisabeta_portrait = pygame.image.load(portrait_path).convert_alpha()
 
     # ------------------------------------------------------------------
     # Drawing helpers
@@ -109,33 +100,28 @@ class Overlay:
         overlay.fill((0, 0, 0, 180))
         self.display_surface.blit(overlay, (0, 0))
 
-        # Title
-        title = self.font_large.render('Portrait of Elisabeta', True, (220, 180, 120))
-        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 60))
-        self.display_surface.blit(title, title_rect)
+        # Portrait (scaled to fit)
+        portrait = self.elisabeta_portrait
+        max_w = int(SCREEN_WIDTH * 0.6)
+        max_h = int(SCREEN_HEIGHT * 0.75)
+        scale = min(max_w / portrait.get_width(), max_h / portrait.get_height(), 1.0)
+        if scale != 1.0:
+            portrait = pygame.transform.smoothscale(
+                portrait,
+                (int(portrait.get_width() * scale), int(portrait.get_height() * scale)),
+            )
 
-        # Description lines
-        for i, line in enumerate(ELISABETA_PORTRAIT_TEXT.split('\n')):
-            line_surf = self.font.render(line.strip(), True, (200, 200, 200))
-            line_rect = line_surf.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + i * 30))
-            self.display_surface.blit(line_surf, line_rect)
+        portrait_rect = portrait.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        # subtle frame
+        frame_rect = portrait_rect.inflate(10, 10)
+        pygame.draw.rect(self.display_surface, (220, 200, 180), frame_rect, border_radius=6)
+        pygame.draw.rect(self.display_surface, (60, 50, 40), frame_rect, 2, border_radius=6)
+        self.display_surface.blit(portrait, portrait_rect)
 
         # Dismiss hint
         hint = self.font_small.render('Press P to close', True, (150, 150, 150))
-        hint_rect = hint.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100))
+        hint_rect = hint.get_rect(center=(SCREEN_WIDTH // 2, min(SCREEN_HEIGHT - 40, portrait_rect.bottom + 30)))
         self.display_surface.blit(hint, hint_rect)
-
-    def _draw_tool_seed(self):
-        """Bottom HUD — current tool and seed (kept for farming)."""
-        if self.player.selected_tool in self.tools_surf:
-            tool_surf = self.tools_surf[self.player.selected_tool]
-            tool_rect = tool_surf.get_rect(midbottom=OVERLAY_POSITIONS['tool'])
-            self.display_surface.blit(tool_surf, tool_rect)
-
-        if self.player.selected_seed in self.seeds_surf:
-            seed_surf = self.seeds_surf[self.player.selected_seed]
-            seed_rect = seed_surf.get_rect(midbottom=OVERLAY_POSITIONS['seed'])
-            self.display_surface.blit(seed_surf, seed_rect)
 
     # ------------------------------------------------------------------
     # Public
@@ -145,5 +131,4 @@ class Overlay:
         self._draw_form_indicator()
         self._draw_time_indicator()
         self._draw_sunlight_warning(dt)
-        self._draw_tool_seed()
         self._draw_portrait_overlay()

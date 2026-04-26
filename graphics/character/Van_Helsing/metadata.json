@@ -1,0 +1,26 @@
+{
+  "character": {
+    "id": "1dd4ac74-52eb-4366-89c1-d0841ced94c7",
+    "name": "Van Helsing from Dracula. Gray hair, black hat, long black robe, white dress shirt, black tie",
+    "prompt": "Van Helsing from Dracula. Gray hair, black hat, long black robe, white dress shirt, black tie",
+    "size": {
+      "width": 92,
+      "height": 92
+    },
+    "template_id": "mannequin",
+    "directions": 4,
+    "view": "low top-down",
+    "created_at": "2026-04-26T05:34:09.771892+00:00"
+  },
+  "frames": {
+    "rotations": {
+      "south": "rotations/south.png",
+      "west": "rotations/west.png",
+      "east": "rotations/east.png",
+      "north": "rotations/north.png"
+    },
+    "animations": {}
+  },
+  "export_version": "2.0",
+  "export_date": "2026-04-26T05:41:06.064473"
+}

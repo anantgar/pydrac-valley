@@ -1,0 +1,26 @@
+{
+  "character": {
+    "id": "c652f3f4-096c-44ac-a055-4c8e1b4be6c4",
+    "name": "Renfield from Dracula. Glasses, crazy gray hair. Wearing old, dirty clothes.",
+    "prompt": "Renfield from Dracula. Glasses, crazy gray hair. Wearing old, dirty clothes.",
+    "size": {
+      "width": 92,
+      "height": 92
+    },
+    "template_id": "mannequin",
+    "directions": 4,
+    "view": "low top-down",
+    "created_at": "2026-04-26T05:31:15.859059+00:00"
+  },
+  "frames": {
+    "rotations": {
+      "south": "rotations/south.png",
+      "west": "rotations/west.png",
+      "east": "rotations/east.png",
+      "north": "rotations/north.png"
+    },
+    "animations": {}
+  },
+  "export_version": "2.0",
+  "export_date": "2026-04-26T05:41:10.854564"
+}

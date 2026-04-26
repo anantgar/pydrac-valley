@@ -1,5 +1,3 @@
-from pygame.math import Vector2
-
 # =============================================================================
 # WINDOW & DISPLAY
 # =============================================================================
@@ -15,55 +13,11 @@ TILE_SIZE = 64
 LAYERS = {
     'water': 0,
     'ground': 1,
-    'soil': 2,
-    'soil water': 3,
     'rain floor': 4,
     'house bottom': 5,
-    'ground plant': 6,
     'main': 7,
     'house top': 8,
-    'fruit': 9,
     'rain drops': 10,
-}
-
-# =============================================================================
-# PLAYER TOOL OFFSETS (kept for farming / graveyard system)
-# =============================================================================
-OVERLAY_POSITIONS = {
-    'tool': (40, SCREEN_HEIGHT - 15),
-    'seed': (70, SCREEN_HEIGHT - 5),
-}
-
-PLAYER_TOOL_OFFSET = {
-    'left': Vector2(-50, 40),
-    'right': Vector2(50, 40),
-    'up': Vector2(0, -10),
-    'down': Vector2(0, 50),
-}
-
-# =============================================================================
-# FARMING / GRAVEYARD SYSTEM (kept — will become "farm of dead bodies")
-# =============================================================================
-APPLE_POS = {
-    'Small': [(18, 17), (30, 37), (12, 50), (30, 45), (20, 30), (30, 10)],
-    'Large': [(30, 24), (60, 65), (50, 50), (16, 40), (45, 50), (42, 70)],
-}
-
-GROW_SPEED = {
-    'corn': 1,
-    'tomato': 0.7,
-}
-
-SALE_PRICES = {
-    'wood': 4,
-    'apple': 2,
-    'corn': 10,
-    'tomato': 20,
-}
-
-PURCHASE_PRICES = {
-    'corn': 4,
-    'tomato': 5,
 }
 
 # =============================================================================
@@ -141,11 +95,14 @@ ORIGINAL_MAP_HEIGHT = 2560
 # Tiles are 64x64.  Floor = interior, walls = perimeter collision.
 
 CASTLE_BUILDING = (-3000, 800, 10, 8)       # Dracula's castle
-GRAVEYARD_AREA  = (-3000, 1700, 10, 6)      # Graveyard / farm below castle
+GRAVEYARD_AREA  = (-3000, 1700, 10, 6)      # Graveyard below castle
 
 ASYLUM_BUILDING = (4800, 800, 10, 8)        # Asylum (east of London)
 CONVENT_BUILDING = (4800, 3800, 8, 6)       # Budapest convent (far south-east)
 MUSEUM_BUILDING = (2400, -800, 6, 5)        # Museum north of London
+
+LUCY_BEDROOM_BUILDING = (960, 1408, 5, 4)   # Bedroom attached west of London house
+MINA_BEDROOM_BUILDING = (1792, 1408, 5, 4)  # Bedroom attached east of London house
 
 # ── Road definitions (start_pos, end_pos, width_in_tiles) ────────────────────
 # Roads are horizontal or vertical strips of path tiles.
@@ -172,8 +129,9 @@ WORLD_REGIONS = {
 
     'london_streets':   (0,    0,   3200, 2560),
     'lucy_house':       (1280, 1344, 512, 384),
-    'lucy_bedroom':     (1344, 1408, 192, 192),
-    'mina_bedroom':     (1600, 1408, 128, 192),
+    'lucy_house_inner': (1344, 1408, 384, 256),
+    'lucy_bedroom':     (1024, 1472, 192, 128),
+    'mina_bedroom':     (1856, 1472, 192, 128),
     'guardian_room':    (1344, 1600, 192, 128),
     'garden':           (1280, 1728, 512, 256),
     'museum':           (2400, -800, 384, 320),
@@ -205,16 +163,17 @@ COFFIN_SIZE = (TILE_SIZE * 2, TILE_SIZE)
 # =============================================================================
 NPC_PATROL_SPEED = 100
 NPC_PACE_SPEED = 60
+NPC_FRANTIC_SPEED = 360
 WATCH_ROTATION_DURATION = 30.0
 
 # NPC positions — inside their respective buildings
 NPC_POSITIONS = {
-    # Lucy's house (existing TMX house interior: x 1344-1728, y 1408-1728)
-    'lucy':        (1500, 1500),     # Lucy's bedroom area
-    'mina':        (1650, 1500),     # Mina's bedroom area
-    'arthur':      (1450, 1650),     # Guardian room
-    'van_helsing': (1500, 1650),
-    'quincey':     (1550, 1650),
+    # Side bedrooms attached to the London house
+    'lucy':        (1056, 1568),
+    'mina':        (1888, 1568),
+    'arthur':      (1408, 1600),     # Main London house interior
+    'van_helsing': (1536, 1472),
+    'quincey':     (1664, 1600),
 
     # Asylum interior (4864-5376, 864-1312)
     'renfield':    (4928, 960),      # In the cell area
@@ -230,17 +189,14 @@ GUARDIAN_PATROL_WAYPOINTS = [
     (1700, 1700), (1350, 1700),
 ]
 GUARDIAN_SLEEP_POSITIONS = {
-    'arthur':      (1450, 1650),
-    'van_helsing': (1500, 1650),
-    'quincey':     (1550, 1650),
+    'arthur':      (1408, 1600),
+    'van_helsing': (1536, 1472),
+    'quincey':     (1664, 1600),
 }
 
-# Renfield pacing in cell
-RENFIELD_WAYPOINTS = [(4870, 930), (5020, 1020)]
-
-# Seward patrolling halls
+# Seward pacing in a straight line beside Renfield's cell
 SEWARD_WAYPOINTS = [
-    (5100, 900), (5300, 900), (5300, 1250), (5100, 1250),
+    (5184, 900), (5184, 1216),
 ]
 
 # =============================================================================
@@ -267,4 +223,5 @@ SUNLIGHT_WARNING_POS = (SCREEN_WIDTH // 2, 60)
 CHARACTER_SPRITE_PATH = '../graphics/character'
 FONT_PATH = '../font/LycheeSoda.ttf'
 HOUSE_TILESET_PATH = '../graphics/environment/House.png'
+HOUSE_DECORATION_TILESET_PATH = '../graphics/environment/House Decoration.png'
 PATHS_TILESET_PATH = '../graphics/environment/Paths.png'

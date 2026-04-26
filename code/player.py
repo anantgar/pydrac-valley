@@ -8,27 +8,16 @@ Extends the original Player with:
 - Coffin / sleep mechanic
 - Elisabeta portrait as an inspectable inventory item
 - Form-based visual tinting of shared character sprites
-
-Farming tools & seeds are KEPT (graveyard / dead-body farm reuse).
 """
-import os
 import pygame
 from settings import *
-from support import import_folder, get_path
+from support import get_path
 from timer import Timer
 from blood import BloodSystem
 
 
-def _tint_surface(surf, color):
-    """Return a copy of *surf* with an RGB multiply tint applied."""
-    tinted = surf.copy()
-    tinted.fill(color, special_flags=pygame.BLEND_RGB_MULT)
-    return tinted
-
-
 class Dracula(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites,
-                 interaction, soil_layer, toggle_shop):
+    def __init__(self, pos, group, collision_sprites, interaction):
         super().__init__(group)
 
         # ── Animation ────────────────────────────────────────────────
@@ -57,112 +46,64 @@ class Dracula(pygame.sprite.Sprite):
 
         # ── Timers ───────────────────────────────────────────────────
         self.timers = {
-            'tool use': Timer(350, self.use_tool),
-            'tool switch': Timer(200),
-            'seed use': Timer(350, self.use_seed),
-            'seed switch': Timer(200),
             'transform': Timer(400),   # cooldown after transforming
             'feed': Timer(PREDATION_COOLDOWN_MS),
         }
 
-        # ── Tools (kept for graveyard farming) ───────────────────────
-        self.tools = ['hoe', 'axe', 'water']
-        self.tool_index = 0
-        self.selected_tool = self.tools[self.tool_index]
-
-        # ── Seeds ────────────────────────────────────────────────────
-        self.seeds = ['corn', 'tomato']
-        self.seed_index = 0
-        self.selected_seed = self.seeds[self.seed_index]
-
         # ── Inventory ────────────────────────────────────────────────
-        self.item_inventory = {
-            'wood': 0,
-            'apple': 0,
-            'corn': 0,
-            'tomato': 0,
-        }
-        self.seed_inventory = {
-            'corn': 5,
-            'tomato': 5,
-        }
+        self.item_inventory = {}
         self.money = 200
         self.has_portrait = True  # Elisabeta portrait — always carried
 
         # ── Interaction ──────────────────────────────────────────────
-        self.tree_sprites = tree_sprites
         self.interaction = interaction
         self.sleep = False  # True → coffin transition playing
-        self.soil_layer = soil_layer
-        self.toggle_shop = toggle_shop
 
         # ── Predation intent (consumed by Level) ─────────────────────
         self.wants_to_feed = False
 
         # ── Portrait inspection ──────────────────────────────────────
         self.inspecting_portrait = False
-
-        # ── Sound ────────────────────────────────────────────────────
-        watering_sound_path = get_path('../audio/water.mp3')
-        self.watering = pygame.mixer.Sound(watering_sound_path)
-        self.watering.set_volume(0.2)
+        self._p_was_down = False
 
     # ==================================================================
     # ASSET LOADING
     # ==================================================================
     def _import_assets(self):
-        """Load character animations and pre-compute per-form tinted variants."""
-        base_animations = {
-            'up': [], 'down': [], 'left': [], 'right': [],
-            'up_idle': [], 'down_idle': [], 'left_idle': [], 'right_idle': [],
-            'up_hoe': [], 'down_hoe': [], 'left_hoe': [], 'right_hoe': [],
-            'up_axe': [], 'down_axe': [], 'left_axe': [], 'right_axe': [],
-            'up_water': [], 'down_water': [], 'left_water': [], 'right_water': [],
+        """Load directional human sprites and single-image transformed forms."""
+        def load_sprite(filename):
+            path = get_path(f'{CHARACTER_SPRITE_PATH}/{filename}')
+            return pygame.image.load(path).convert_alpha()
+
+        human_directional = {
+            'up': load_sprite('north.png'),
+            'down': load_sprite('south.png'),
+            'left': load_sprite('west.png'),
+            'right': load_sprite('east.png'),
         }
+        bat_sprite = load_sprite('bat.png')
+        werewolf_sprite = load_sprite('werewolf.png')
 
-        for animation in base_animations:
-            path = get_path(f'{CHARACTER_SPRITE_PATH}/{animation}')
-            base_animations[animation] = import_folder(path)
+        # Keep movement and idle states mapped to the shared directional sprites.
+        all_statuses = [
+            'up', 'down', 'left', 'right',
+            'up_idle', 'down_idle', 'left_idle', 'right_idle',
+        ]
 
-        # Build per-form animation dicts (tinted copies for non-human forms)
-        self.form_animations = {FORM_HUMAN: base_animations}
-        for form_key in (FORM_BAT, FORM_WEREWOLF):
-            tint = FORM_TINT[form_key]
-            if tint:
-                self.form_animations[form_key] = {
-                    key: [_tint_surface(f, tint) for f in frames]
-                    for key, frames in base_animations.items()
-                }
-            else:
-                self.form_animations[form_key] = base_animations
+        human_animations = {}
+        bat_animations = {}
+        werewolf_animations = {}
+        for status in all_statuses:
+            direction = status.split('_')[0]
+            human_animations[status] = [human_directional[direction]]
+            bat_animations[status] = [bat_sprite]
+            werewolf_animations[status] = [werewolf_sprite]
 
-    # ==================================================================
-    # TOOLS (kept for graveyard farming)
-    # ==================================================================
-    def use_tool(self):
-        if self.current_form == FORM_BAT:
-            return  # bats cannot use tools
-
-        if self.selected_tool == 'hoe':
-            self.soil_layer.get_hit(self.target_pos)
-        if self.selected_tool == 'axe':
-            for tree in self.tree_sprites.sprites():
-                if tree.rect.collidepoint(self.target_pos):
-                    tree.damage()
-        if self.selected_tool == 'water':
-            self.soil_layer.water(self.target_pos)
-            self.watering.play()
-
-    def get_target_pos(self):
-        self.target_pos = self.rect.center + \
-            PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
-
-    def use_seed(self):
-        if self.current_form == FORM_BAT:
-            return
-        if self.seed_inventory[self.selected_seed] > 0:
-            self.soil_layer.plant_seed(self.target_pos, self.selected_seed)
-            self.seed_inventory[self.selected_seed] -= 1
+        self.form_animations = {
+            FORM_HUMAN: human_animations,
+            FORM_BAT: bat_animations,
+            FORM_WEREWOLF: werewolf_animations,
+        }
 
     # ==================================================================
     # TRANSFORMATION
@@ -189,7 +130,7 @@ class Dracula(pygame.sprite.Sprite):
     def input(self):
         keys = pygame.key.get_pressed()
 
-        if not self.timers['tool use'].active and not self.sleep:
+        if not self.sleep:
             # ── Movement ─────────────────────────────────────────────
             if keys[pygame.K_UP]:
                 self.direction.y = -1
@@ -209,39 +150,13 @@ class Dracula(pygame.sprite.Sprite):
             else:
                 self.direction.x = 0
 
-            # ── Tool use (blocked in bat form) ───────────────────────
-            if keys[pygame.K_SPACE] and self.current_form != FORM_BAT:
-                self.timers['tool use'].activate()
-                self.direction = pygame.math.Vector2()
-                self.frame_index = 0
-
-            # ── Tool switch ──────────────────────────────────────────
-            if keys[pygame.K_q] and not self.timers['tool switch'].active:
-                self.timers['tool switch'].activate()
-                self.tool_index = (self.tool_index + 1) % len(self.tools)
-                self.selected_tool = self.tools[self.tool_index]
-
-            # ── Seed use (blocked in bat form) ───────────────────────
-            if keys[pygame.K_LCTRL] and self.current_form != FORM_BAT:
-                self.timers['seed use'].activate()
-                self.direction = pygame.math.Vector2()
-                self.frame_index = 0
-
-            # ── Seed switch ──────────────────────────────────────────
-            if keys[pygame.K_e] and not self.timers['seed switch'].active:
-                self.timers['seed switch'].activate()
-                self.seed_index = (self.seed_index + 1) % len(self.seeds)
-                self.selected_seed = self.seeds[self.seed_index]
-
-            # ── Interaction (coffin / trader) ────────────────────────
+            # ── Interaction (coffin) ─────────────────────────────────
             if keys[pygame.K_RETURN]:
                 collided = pygame.sprite.spritecollide(
                     self, self.interaction, False)
                 if collided:
                     name = collided[0].name
-                    if name == 'Trader':
-                        self.toggle_shop()
-                    elif name in ('Bed', 'Coffin'):
+                    if name in ('Bed', 'Coffin'):
                         self.status = 'left_idle'
                         self.sleep = True
 
@@ -260,8 +175,10 @@ class Dracula(pygame.sprite.Sprite):
                     self.timers['feed'].activate()
 
             # ── Elisabeta portrait ───────────────────────────────────
-            if keys[pygame.K_p]:
+            p_down = keys[pygame.K_p]
+            if p_down and not self._p_was_down:
                 self.inspecting_portrait = not self.inspecting_portrait
+            self._p_was_down = p_down
 
     # ==================================================================
     # STATUS / ANIMATION
@@ -269,8 +186,6 @@ class Dracula(pygame.sprite.Sprite):
     def get_status(self):
         if self.direction.magnitude() == 0:
             self.status = self.status.split('_')[0] + '_idle'
-        if self.timers['tool use'].active:
-            self.status = self.status.split('_')[0] + '_' + self.selected_tool
 
     def animate(self, dt):
         anims = self.form_animations[self.current_form]
@@ -337,6 +252,5 @@ class Dracula(pygame.sprite.Sprite):
         self.input()
         self.get_status()
         self.update_timers()
-        self.get_target_pos()
         self.move(dt)
         self.animate(dt)

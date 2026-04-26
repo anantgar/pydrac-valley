@@ -1,8 +1,7 @@
 """
 Inventory / status menu (replaces the original shop menu).
 
-Shows Dracula's current status and inventory. The shop buy/sell
-mechanic is kept for the Trader interaction.
+Shows Dracula's current status and inventory.
 """
 import pygame
 from settings import *
@@ -25,8 +24,7 @@ class Menu:
         self.padding = 8
 
         # entries
-        self.options = list(self.player.item_inventory.keys()) + \
-            list(self.player.seed_inventory.keys())
+        self.options = list(self.player.item_inventory.keys())
         self.sell_border = len(self.player.item_inventory) - 1
         self.setup()
 
@@ -52,13 +50,17 @@ class Menu:
             self.text_surfs.append(text_surf)
             self.total_height += text_surf.get_height() + (self.padding * 2)
 
-        self.total_height += (len(self.text_surfs) - 1) * self.space
+        if self.text_surfs:
+            self.total_height += (len(self.text_surfs) - 1) * self.space
+        else:
+            empty_surf = self.font.render('No items available', False, 'Black')
+            self.text_surfs.append(empty_surf)
+            self.total_height = empty_surf.get_height() + (self.padding * 2)
         self.menu_top = SCREEN_HEIGHT / 2 - self.total_height / 2
         self.main_rect = pygame.Rect(
             SCREEN_WIDTH / 2 - self.width / 2, self.menu_top,
             self.width, self.total_height)
 
-        self.buy_text = self.font.render('buy', False, 'Black')
         self.sell_text = self.font.render('sell', False, 'Black')
 
     def input(self):
@@ -77,26 +79,21 @@ class Menu:
                 self.timer.activate()
                 self.index += 1
 
-            if keys[pygame.K_SPACE] or keys[pygame.K_RETURN]:
+            if self.options and (keys[pygame.K_SPACE] or keys[pygame.K_RETURN]):
                 self.timer.activate()
 
                 current_item = self.options[self.index]
 
-                # sell
                 if self.index <= self.sell_border:
                     if self.player.item_inventory[current_item] > 0:
                         self.player.item_inventory[current_item] -= 1
-                        self.player.money += SALE_PRICES[current_item]
-                # buy
-                else:
-                    seed_price = PURCHASE_PRICES[current_item]
-                    if self.player.money >= seed_price:
-                        self.player.seed_inventory[current_item] += 1
-                        self.player.money -= PURCHASE_PRICES[current_item]
+                        self.player.money += 1
 
-        if self.index < 0:
+        if not self.options:
+            self.index = 0
+        elif self.index < 0:
             self.index = len(self.options) - 1
-        if self.index > len(self.options) - 1:
+        elif self.index > len(self.options) - 1:
             self.index = 0
 
     def show_entry(self, text_surf, amount, top, selected):
@@ -115,23 +112,22 @@ class Menu:
 
         if selected:
             pygame.draw.rect(self.display_surface, 'black', bg_rect, 4, 4)
-            if self.index <= self.sell_border:
+            if self.options and self.index <= self.sell_border:
                 pos_rect = self.sell_text.get_rect(
                     midleft=(self.main_rect.left + 150, bg_rect.centery))
                 self.display_surface.blit(self.sell_text, pos_rect)
-            else:
-                pos_rect = self.buy_text.get_rect(
-                    midleft=(self.main_rect.left + 150, bg_rect.centery))
-                self.display_surface.blit(self.buy_text, pos_rect)
 
     def update(self):
         self.input()
         self.display_money()
 
+        if not self.options:
+            self.show_entry(self.text_surfs[0], 0, self.main_rect.top, False)
+            return
+
         for text_index, text_surf in enumerate(self.text_surfs):
             top = self.main_rect.top + text_index * \
                 (text_surf.get_height() + (self.padding * 2) + self.space)
-            amount_list = list(self.player.item_inventory.values()) + \
-                list(self.player.seed_inventory.values())
+            amount_list = list(self.player.item_inventory.values())
             amount = amount_list[text_index]
             self.show_entry(text_surf, amount, top, self.index == text_index)

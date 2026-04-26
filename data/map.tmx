@@ -483,9 +483,6 @@
   <object id="208" name="Small" gid="149" x="670" y="886" width="56" height="116"/>
  </objectgroup>
  <objectgroup id="10" name="Decoration">
-  <object id="139" type="decor" gid="147" x="650.167" y="1025.83" width="56" height="112"/>
-  <object id="140" type="decor" gid="147" x="732.167" y="881.833" width="56" height="112"/>
-  <object id="141" type="decor" gid="147" x="820.167" y="859.833" width="56" height="112"/>
   <object id="142" type="decor" gid="143" x="1360.17" y="645.833" width="64" height="60"/>
   <object id="143" type="decor" gid="143" x="1490.17" y="473.833" width="64" height="60"/>
   <object id="144" type="decor" gid="143" x="1426.17" y="921.833" width="64" height="60"/>
@@ -501,77 +498,16 @@
   <object id="154" type="decor" gid="143" x="1396.17" y="779.833" width="64" height="60"/>
   <object id="155" type="decor" gid="143" x="2186.17" y="833.833" width="64" height="60"/>
   <object id="156" type="decor" gid="143" x="1692.17" y="983.833" width="64" height="60"/>
-  <object id="157" type="decor" gid="150" x="1603.84" y="538.166" width="44" height="48"/>
-  <object id="158" type="decor" gid="150" x="1816.5" y="704.833" width="44" height="48"/>
-  <object id="159" type="decor" gid="150" x="2186.84" y="745.5" width="44" height="48"/>
-  <object id="160" type="decor" gid="150" x="2405.84" y="686.5" width="44" height="48"/>
-  <object id="161" type="decor" gid="150" x="2393.17" y="1120.83" width="44" height="48"/>
-  <object id="162" type="decor" gid="150" x="2502.5" y="1418.5" width="44" height="48"/>
-  <object id="163" type="decor" gid="150" x="2390.17" y="1642.16" width="44" height="48"/>
-  <object id="164" type="decor" gid="151" x="2469.84" y="1165.5" width="40" height="44"/>
-  <object id="165" type="decor" gid="151" x="1917" y="748.833" width="40" height="44"/>
-  <object id="166" type="decor" gid="152" x="1942.17" y="808" width="52" height="52"/>
-  <object id="167" type="decor" gid="151" x="1995.5" y="461.833" width="40" height="44"/>
-  <object id="168" type="decor" gid="151" x="1437.84" y="405.833" width="40" height="44"/>
-  <object id="169" type="decor" gid="151" x="1416.17" y="524.5" width="40" height="44"/>
-  <object id="170" type="decor" gid="151" x="1491.5" y="774.833" width="40" height="44"/>
-  <object id="171" type="decor" gid="151" x="1728.84" y="585.833" width="40" height="44"/>
-  <object id="172" type="decor" gid="152" x="2353.17" y="557.166" width="52" height="52"/>
-  <object id="173" type="decor" gid="150" x="745.167" y="979.833" width="44" height="48"/>
-  <object id="174" type="decor" gid="150" x="1292.17" y="975.833" width="44" height="48"/>
-  <object id="175" type="decor" gid="151" x="1615.17" y="910.833" width="40" height="44"/>
-  <object id="176" type="decor" gid="152" x="2373.17" y="1261.83" width="52" height="52"/>
-  <object id="177" type="decor" gid="152" x="2502.17" y="1546.83" width="52" height="52"/>
-  <object id="178" type="decor" gid="151" x="2515.17" y="1992.83" width="40" height="44"/>
   <object id="211" type="decor" gid="143" x="1752" y="624.667" width="64" height="60"/>
-  <object id="252" gid="147" x="555" y="840" width="56" height="112"/>
   <object id="255" gid="143" x="2052" y="819.333" width="64" height="60"/>
-  <object id="257" gid="147" x="826" y="446" width="56" height="112"/>
-  <object id="258" gid="147" x="736" y="582" width="56" height="112"/>
-  <object id="259" gid="147" x="894" y="732" width="56" height="112"/>
-  <object id="260" gid="147" x="1232" y="374" width="56" height="112"/>
-  <object id="261" gid="147" x="1171" y="450" width="56" height="112"/>
-  <object id="262" gid="147" x="1212" y="707" width="56" height="112"/>
-  <object id="263" gid="147" x="1176" y="752" width="56" height="112"/>
-  <object id="264" gid="147" x="1152" y="491" width="56" height="112"/>
-  <object id="265" gid="147" x="736" y="741" width="56" height="112"/>
-  <object id="266" gid="147" x="1116" y="599" width="56" height="112"/>
-  <object id="267" gid="147" x="1201" y="590" width="56" height="112"/>
-  <object id="268" gid="150" x="846" y="566" width="44" height="48"/>
-  <object id="269" gid="150" x="1104" y="671" width="44" height="48"/>
-  <object id="270" gid="150" x="1058" y="522" width="44" height="48"/>
-  <object id="271" gid="150" x="1042" y="403" width="44" height="48"/>
  </objectgroup>
  <objectgroup id="12" name="Player">
   <object id="253" name="Start" x="1561.33" y="1772">
    <point/>
   </object>
-  <object id="254" name="Trader" x="895" y="379.667" width="192" height="131.333"/>
   <object id="256" name="Bed" x="1408.67" y="1403.33" width="63.6667" height="66.3333"/>
  </objectgroup>
  <objectgroup id="7" name="Objects">
-  <object id="2" gid="147" x="432" y="948" width="56" height="112"/>
-  <object id="3" gid="147" x="456" y="1026" width="56" height="112"/>
-  <object id="4" gid="147" x="322" y="1780" width="56" height="112"/>
-  <object id="5" gid="147" x="176" y="1806" width="56" height="112"/>
-  <object id="6" gid="147" x="450" y="1890" width="56" height="112"/>
-  <object id="7" gid="147" x="400" y="1994" width="56" height="112"/>
-  <object id="8" gid="147" x="438" y="1096" width="56" height="112"/>
-  <object id="9" gid="147" x="554" y="1164" width="56" height="112"/>
-  <object id="13" gid="147" x="488" y="1968" width="56" height="112"/>
-  <object id="14" gid="147" x="518" y="1634" width="56" height="112"/>
-  <object id="15" gid="147" x="450" y="1428" width="56" height="112"/>
-  <object id="16" gid="147" x="528" y="1298" width="56" height="112"/>
-  <object id="17" gid="147" x="418" y="2204" width="56" height="112"/>
-  <object id="18" gid="147" x="82" y="2070" width="56" height="112"/>
-  <object id="19" gid="147" x="188" y="2030" width="56" height="112"/>
-  <object id="20" gid="147" x="178" y="2230" width="56" height="112"/>
-  <object id="21" gid="147" x="380" y="2384" width="56" height="112"/>
-  <object id="22" gid="147" x="110" y="2520" width="56" height="112"/>
-  <object id="23" gid="147" x="418" y="2536" width="56" height="112"/>
-  <object id="24" gid="147" x="492" y="2356" width="56" height="112"/>
-  <object id="25" gid="147" x="536" y="2160" width="56" height="112"/>
-  <object id="26" gid="147" x="508" y="2232" width="56" height="112"/>
   <object id="27" gid="149" x="-18" y="1292" width="56" height="116"/>
   <object id="28" gid="149" x="174" y="1256" width="56" height="116"/>
   <object id="29" gid="149" x="242" y="886" width="56" height="116"/>
@@ -608,7 +544,6 @@
   <object id="61" gid="149" x="560" y="78" width="56" height="116"/>
   <object id="62" gid="149" x="546" y="360" width="56" height="116"/>
   <object id="78" gid="149" x="1746" y="622" width="56" height="116" visible="0"/>
-  <object id="95" gid="144" x="962" y="442" width="56" height="68"/>
  </objectgroup>
  <layer id="14" name="Collision" width="50" height="40" visible="0">
   <data encoding="csv">

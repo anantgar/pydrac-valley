@@ -1,0 +1,26 @@
+{
+  "character": {
+    "id": "aa5ea484-1b05-4308-965f-833d1a295823",
+    "name": "Lucy from Dracula. White woman in pretty white dress. Ginger hair.",
+    "prompt": "Lucy from Dracula. White woman in pretty white dress. Ginger hair.",
+    "size": {
+      "width": 92,
+      "height": 92
+    },
+    "template_id": "mannequin",
+    "directions": 4,
+    "view": "low top-down",
+    "created_at": "2026-04-26T05:25:24.580799+00:00"
+  },
+  "frames": {
+    "rotations": {
+      "south": "rotations/south.png",
+      "west": "rotations/west.png",
+      "east": "rotations/east.png",
+      "north": "rotations/north.png"
+    },
+    "animations": {}
+  },
+  "export_version": "2.0",
+  "export_date": "2026-04-26T05:27:48.528948"
+}

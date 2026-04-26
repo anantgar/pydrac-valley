@@ -1,50 +1,54 @@
-# Python 🌾 Pydew Valley 🌾 Pygame
+# PyDrac Valley
 
-## About project
+Play as Dracula in a gothic survival adventure. Hunt for blood across Victorian London and beyond, transform into supernatural forms, and survive the deadly daylight. Built with Python and Pygame.
 
-A Stardew Valley style game in Python and Pygame.\
-This includes farming and foraging, a day and night cycle, weather effects and a merchant.\
-The game was also made in Tiled.
-
-Pydew Valley RPG written in Python Pygame based on [tutorial](https://www.youtube.com/watch?v=T4IX36sP_0c&ab_channel=ClearCode)
-
-## Run project locally
+## Run The Game
 
 ```bash
-git clone https://github.com/artemshchirov/pydew-valley.git
-pip install pygame
-cd pydew-valley
+pip install -r requirements.txt
 python code/main.py
 ```
 
-## TODO
+## Gameplay
 
-- [x] Setup
-- [x] Creating the basic player
-- [x] Importing the player graphics
-- [x] Animating the player
-- [x] Tool use
-- [x] Switching between tools
-- [x] Creating the overlay
-- [x] Starting the camera and importing the floor
-- [x] Importing all elements and faking more 3D
-- [x] Collisions
-- [x] Working on the trees
-- [x] Particles
-- [x] Player inventory
-- [x] Restarting the day
-- [x] Starting the soil
-- [x] Soil patch graphics
-- [x] Watering logic
-- [x] Rain
-- [x] Creating the plants
-- [x] Harvesting
-- [x] Daytime transition
-- [x] The merchant
-- [x] Audio
+**Blood is everything.** It's your health and your power source. Hunt NPCs to feed and replenish blood, or watch it drain away under the burning sun.
 
----
+**Survive the daylight.** If Dracula is caught outside during the day, he takes continuous sunlight damage. Seek shelter indoors or retreat to your castle before dawn, or face death.
 
-- [ ] Save and load game
-- [ ] Nightime
-- [ ] New plant
+**Transform and conquer.** Shift between three powerful forms, each with unique abilities:
+
+- **Human**: Free transformation, can feed on victims
+- **Bat**: Fly over obstacles at incredible speed
+- **Werewolf**: Enhanced strength and extended feeding range
+
+## Controls
+
+- **Arrow keys**: Move
+- **H / B / W**: Transform into Human, Bat, or Werewolf
+- **F**: Feed on nearby NPCs
+- **Enter**: Interact with coffin to sleep until night
+- **P**: View the Elisabeta portrait
+
+## Hunt Your Prey
+
+Stalk characters from the Dracula movie across a connected world:
+
+- Lucy and Mina in their London bedrooms
+- Van Helsing's guardians patrolling the house
+- Renfield trapped in his asylum cell
+- Seward keeping watch
+- Jonathan Harker hidden in Budapest
+
+Feed on victims to restore blood and turn them into vampires. Once turned, they can't be fed on again until you reset at your coffin.
+
+## The World
+
+Explore interconnected locations spanning Victorian Europe:
+
+- Your castle stronghold with its coffin sanctuary
+- Mountains surrounding London and Lucy's house
+- The asylum to the east
+- The Budapest convent far south
+- Roads and wilderness connecting everything
+
+*I urge you to explore East after you spawn. Go East past London to reach the asylum. From there, go South to reach Harker.*

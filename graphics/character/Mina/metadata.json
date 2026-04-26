@@ -1,0 +1,26 @@
+{
+  "character": {
+    "id": "4d3bb994-c056-4090-be34-a6929b0e5fce",
+    "name": "Mina from Dracula. White woman with black hair wearing red dress.",
+    "prompt": "Mina from Dracula. White woman with black hair wearing red dress.",
+    "size": {
+      "width": 92,
+      "height": 92
+    },
+    "template_id": "mannequin",
+    "directions": 4,
+    "view": "low top-down",
+    "created_at": "2026-04-26T05:26:58.370386+00:00"
+  },
+  "frames": {
+    "rotations": {
+      "south": "rotations/south.png",
+      "west": "rotations/west.png",
+      "east": "rotations/east.png",
+      "north": "rotations/north.png"
+    },
+    "animations": {}
+  },
+  "export_version": "2.0",
+  "export_date": "2026-04-26T05:28:10.996951"
+}
