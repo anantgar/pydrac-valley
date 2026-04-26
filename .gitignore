@@ -1,4 +1,8 @@
 /code/__pycache__
+/.venv
+/.venv-macos
+/.venv-windows
+.DS_Store
 /untitled.tiled-project
 /untitled.tiled-session
 /graphics/untitled.tiled-project

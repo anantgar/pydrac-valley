@@ -5,6 +5,8 @@ Play as Dracula in a gothic survival adventure. Hunt for blood across Victorian 
 ## Run The Game
 
 ```bash
+git clone https://github.com/anantgar/pydrac-valley.git
+cd pydrac-valley
 pip install -r requirements.txt
 python code/main.py
 ```
